@@ -1,0 +1,46 @@
+# Node modules
+node_modules
+
+# Next.js cache
+.next
+
+# Prisma
+prisma/.migrate
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# IDE and editor
+.vscode
+.idea
+*.sublime-project
+*.sublime-workspace
+
+# Build outputs
+dist/
+build/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+*.tmp

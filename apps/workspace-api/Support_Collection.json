@@ -1,0 +1,30 @@
+{
+  "info": {
+    "name": "Workspace API - Support Hub",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Tickets",
+      "item": [
+        {
+          "name": "Create Ticket",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{ACCESS_TOKEN}}" }, { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Login issue\",\n  \"assignedToId\": \"uuid\"\n}" },
+            "url": { "raw": "http://localhost:4000/api/support/tickets", "protocol": "http", "host": ["localhost"], "port": "4000", "path": ["api", "support", "tickets"] }
+          }
+        },
+        {
+          "name": "Get Tickets",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{ACCESS_TOKEN}}" } ],
+            "url": { "raw": "http://localhost:4000/api/support/tickets", "protocol": "http", "host": ["localhost"], "port": "4000", "path": ["api", "support", "tickets"] }
+          }
+        }
+      ]
+    }
+  ]
+}

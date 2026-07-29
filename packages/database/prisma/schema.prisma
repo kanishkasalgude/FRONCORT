@@ -1,0 +1,312 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ORG_ADMIN
+  SUPPORT_AGENT
+  REVIEWER
+}
+
+enum ConnectionStatus {
+  PENDING
+  CONNECTED
+  REVOKED
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum PRStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  MERGED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  CHANGES_REQUESTED
+}
+
+enum ResourceType {
+  TICKET
+  PULL_REQUEST
+}
+
+model User {
+  id              String           @id @default(uuid())
+  email           String           @unique
+  passwordHash    String
+  isPlatformAdmin Boolean          @default(false)
+  
+  memberships     OrgMembership[]
+  sessions        Session[]
+  createdTickets  Ticket[]         @relation("TicketCreator")
+  assignedTickets Ticket[]         @relation("TicketAssignee")
+  authoredPRs     PullRequest[]
+  prReviews       PRReviewer[]
+  sharedResources ResourceShare[]  @relation("SharedByUser")
+  receivedShares  ResourceShare[]  @relation("SharedWithUser")
+  auditLogs       AuditLog[]
+  digests         Digest[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model Org {
+  id                 String           @id @default(uuid())
+  name               String
+  
+  memberships        OrgMembership[]
+  
+  requestedConnections OrgConnection[] @relation("RequesterOrg")
+  partnerConnections   OrgConnection[] @relation("PartnerOrg")
+  
+  tickets            Ticket[]
+  featureFlags       FeatureFlag[]
+  pullRequests       PullRequest[]
+  
+  sharesAsSource     ResourceShare[] @relation("SourceOrg")
+  sharesAsTarget     ResourceShare[] @relation("TargetOrg")
+
+  auditLogs          AuditLog[]
+  digests            Digest[]
+
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+}
+
+model OrgMembership {
+  id        String   @id @default(uuid())
+  userId    String
+  orgId     String
+  role      Role
+
+  user      User     @relation(fields: [userId], references: [id])
+  org       Org      @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, orgId])
+  @@index([orgId])
+  @@index([userId])
+}
+
+model Session {
+  id               String    @id @default(uuid())
+  userId           String
+  refreshTokenHash String
+  userAgent        String?
+  ipAddress        String?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+
+  user             User      @relation(fields: [userId], references: [id])
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model OrgConnection {
+  id             String           @id @default(uuid())
+  requesterOrgId String
+  partnerOrgId   String
+  status         ConnectionStatus @default(PENDING)
+
+  requesterOrg   Org              @relation("RequesterOrg", fields: [requesterOrgId], references: [id])
+  partnerOrg     Org              @relation("PartnerOrg", fields: [partnerOrgId], references: [id])
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([requesterOrgId, partnerOrgId])
+  @@index([requesterOrgId])
+  @@index([partnerOrgId])
+}
+
+model Ticket {
+  id           String       @id @default(uuid())
+  orgId        String
+  title        String
+  status       TicketStatus @default(OPEN)
+  creatorId    String
+  assignedToId String?
+
+  org          Org          @relation(fields: [orgId], references: [id])
+  creator      User         @relation("TicketCreator", fields: [creatorId], references: [id])
+  assignee     User?        @relation("TicketAssignee", fields: [assignedToId], references: [id])
+  
+  comments     TicketComment[]
+  attachments  TicketAttachment[]
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([orgId])
+  @@index([status])
+  @@index([orgId, status])
+}
+
+model TicketComment {
+  id        String   @id @default(uuid())
+  ticketId  String
+  authorId  String
+  body      String
+
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ticketId])
+}
+
+model TicketAttachment {
+  id        String   @id @default(uuid())
+  ticketId  String
+  url       String
+
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([ticketId])
+}
+
+model FeatureFlag {
+  id        String   @id @default(uuid())
+  orgId     String
+  key       String
+  enabled   Boolean  @default(false)
+
+  org       Org      @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([orgId, key])
+  @@index([orgId])
+}
+
+model PullRequest {
+  id                String       @id @default(uuid())
+  orgId             String
+  authorId          String
+  status            PRStatus     @default(DRAFT)
+  requiredApprovals Int          @default(1)
+
+  org               Org          @relation(fields: [orgId], references: [id])
+  author            User         @relation(fields: [authorId], references: [id])
+  
+  reviewers         PRReviewer[]
+  versions          PRVersion[]
+
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([orgId])
+  @@index([status])
+}
+
+model PRReviewer {
+  id             String         @id @default(uuid())
+  prId           String
+  userId         String
+  approvalStatus ApprovalStatus @default(PENDING)
+
+  pr             PullRequest    @relation(fields: [prId], references: [id])
+  user           User           @relation(fields: [userId], references: [id])
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([prId, userId])
+  @@index([prId])
+}
+
+model PRVersion {
+  id            String      @id @default(uuid())
+  prId          String
+  versionNumber Int
+
+  pr            PullRequest @relation(fields: [prId], references: [id])
+
+  createdAt     DateTime    @default(now())
+  
+  @@index([prId])
+}
+
+model ResourceShare {
+  id               String       @id @default(uuid())
+  resourceType     ResourceType
+  resourceId       String       // ID of Ticket or PR
+  sourceOrgId      String
+  targetOrgId      String
+  sharedByUserId   String
+  sharedWithUserId String?      // Optional: limit to specific user
+  revokedAt        DateTime?
+
+  sourceOrg        Org          @relation("SourceOrg", fields: [sourceOrgId], references: [id])
+  targetOrg        Org          @relation("TargetOrg", fields: [targetOrgId], references: [id])
+  sharedByUser     User         @relation("SharedByUser", fields: [sharedByUserId], references: [id])
+  sharedWithUser   User?        @relation("SharedWithUser", fields: [sharedWithUserId], references: [id])
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([sourceOrgId])
+  @@index([targetOrgId])
+  @@index([resourceType, resourceId])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  orgId      String
+  actorId    String
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json
+
+  org        Org      @relation(fields: [orgId], references: [id])
+  actor      User     @relation(fields: [actorId], references: [id])
+
+  createdAt  DateTime @default(now()) // Append only, no updatedAt
+
+  @@index([orgId])
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model Digest {
+  id          String    @id @default(uuid())
+  userId      String
+  orgId       String
+  summary     String
+  
+  user        User      @relation(fields: [userId], references: [id])
+  org         Org       @relation(fields: [orgId], references: [id])
+
+  generatedAt DateTime  @default(now())
+  readAt      DateTime?
+  
+  @@index([userId])
+  @@index([orgId])
+}
