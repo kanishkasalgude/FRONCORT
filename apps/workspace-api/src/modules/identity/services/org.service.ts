@@ -2,6 +2,7 @@ import { OrgRepository } from '../repositories/org.repository';
 import { MembershipRepository } from '../repositories/membership.repository';
 import { JwtService } from './jwt.service';
 import { SessionRepository } from '../repositories/session.repository';
+import { AuditService } from '../../audit/services/audit.service';
 
 export class OrgService {
   static async switchOrg(userId: string, targetOrgId: string, oldSessionId: string, ipAddress?: string, userAgent?: string) {
@@ -31,6 +32,15 @@ export class OrgService {
       sessionId: newSession.id,
       activeOrgId: membership.orgId,
       role: membership.role,
+    });
+
+    await AuditService.logAction({
+      userId,
+      organizationId: targetOrgId,
+      action: 'SWITCH_ORG',
+      resourceType: 'ORG',
+      resourceId: targetOrgId,
+      metadata: { oldSessionId, newSessionId: newSession.id }
     });
 
     return {

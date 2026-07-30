@@ -37,7 +37,7 @@ export class TicketController {
 
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const ticket = await TicketService.updateTicket(req.params.id, req.user!.activeOrgId, req.body);
+      const ticket = await TicketService.updateTicket(req.params.id, req.user!.activeOrgId, req.user!.userId, req.body);
       return sendSuccess(res, ticket);
     } catch (error: any) {
       if (error.message === 'Ticket not found') return sendError(res, 'NOT_FOUND', error.message, 404);
@@ -47,7 +47,7 @@ export class TicketController {
 
   static async updateStatus(req: Request, res: Response, next: NextFunction) {
     try {
-      const ticket = await TicketService.updateStatus(req.params.id, req.user!.activeOrgId, req.body);
+      const ticket = await TicketService.updateStatus(req.params.id, req.user!.activeOrgId, req.user!.userId, req.body);
       return sendSuccess(res, ticket);
     } catch (error: any) {
       if (error.message === 'Ticket not found') return sendError(res, 'NOT_FOUND', error.message, 404);
@@ -57,7 +57,7 @@ export class TicketController {
 
   static async assign(req: Request, res: Response, next: NextFunction) {
     try {
-      const ticket = await TicketService.assignTicket(req.params.id, req.user!.activeOrgId, req.body);
+      const ticket = await TicketService.assignTicket(req.params.id, req.user!.activeOrgId, req.user!.userId, req.body);
       return sendSuccess(res, ticket);
     } catch (error: any) {
       if (error.message === 'Ticket not found') return sendError(res, 'NOT_FOUND', error.message, 404);
@@ -67,7 +67,7 @@ export class TicketController {
 
   static async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      await TicketService.deleteTicket(req.params.id, req.user!.activeOrgId);
+      await TicketService.deleteTicket(req.params.id, req.user!.activeOrgId, req.user!.userId);
       return sendSuccess(res, { deleted: true });
     } catch (error: any) {
       if (error.message === 'Ticket not found') return sendError(res, 'NOT_FOUND', error.message, 404);

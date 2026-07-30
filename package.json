@@ -6,12 +6,16 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspaces --if-present",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"api,support,review\" -c \"blue,green,magenta\" \"npm run dev -w apps/workspace-api\" \"npm run dev -w apps/support-web\" \"npm run dev -w apps/review-web\"",
     "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present"
   },
   "dependencies": {
+    "caniuse-lite": "^1.0.30001806",
     "next": "^16.2.12"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.4"
   }
 }

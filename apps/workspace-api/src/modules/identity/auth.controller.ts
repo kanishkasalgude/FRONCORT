@@ -56,7 +56,7 @@ export class AuthController {
   static async logout(req: Request, res: Response, next: NextFunction) {
     try {
       if (req.user?.sessionId) {
-        await SessionService.revokeSession(req.user.sessionId);
+        await SessionService.revokeSession(req.user.sessionId, req.user.userId, req.user.activeOrgId);
       }
       res.clearCookie('refreshToken');
       return sendSuccess(res, { message: 'Logged out successfully' });

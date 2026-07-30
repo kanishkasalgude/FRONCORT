@@ -1,6 +1,7 @@
 import { SessionRepository } from '../repositories/session.repository';
 import { MembershipRepository } from '../repositories/membership.repository';
 import { JwtService } from './jwt.service';
+import { AuditService } from '../../audit/services/audit.service';
 
 export class SessionService {
   static async validateSession(sessionId: string): Promise<boolean> {
@@ -15,8 +16,17 @@ export class SessionService {
     await SessionRepository.updateLastUsed(sessionId, { ipAddress, userAgent });
   }
 
-  static async revokeSession(sessionId: string) {
+  static async revokeSession(sessionId: string, userId?: string, orgId?: string) {
     await SessionRepository.revoke(sessionId);
+    if (userId && orgId) {
+      await AuditService.logAction({
+        userId,
+        organizationId: orgId,
+        action: 'LOGOUT',
+        resourceType: 'SESSION',
+        resourceId: sessionId,
+      });
+    }
   }
 
   static async revokeAllUserSessions(userId: string) {

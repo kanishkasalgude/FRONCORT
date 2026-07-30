@@ -6,6 +6,7 @@ import { MembershipRepository } from '../repositories/membership.repository';
 import { JwtService } from './jwt.service';
 import bcrypt from 'bcrypt';
 import { env } from '../../../utils/env';
+import { AuditService } from '../../audit/services/audit.service';
 
 export class AuthService {
   static async register(data: RegisterInput, ipAddress?: string, userAgent?: string) {
@@ -78,6 +79,15 @@ export class AuthService {
       sessionId: session.id,
       activeOrgId: membership.orgId,
       role: membership.role,
+    });
+
+    await AuditService.logAction({
+      userId: user.id,
+      organizationId: membership.orgId,
+      action: 'LOGIN',
+      resourceType: 'SESSION',
+      resourceId: session.id,
+      metadata: { ipAddress, userAgent }
     });
 
     return {

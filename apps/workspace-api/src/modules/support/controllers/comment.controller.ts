@@ -30,7 +30,7 @@ export class CommentController {
 
   static async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      await CommentService.deleteComment(req.params.commentId, req.user!.activeOrgId);
+      await CommentService.deleteComment(req.params.commentId, req.user!.activeOrgId, req.user!.userId);
       return sendSuccess(res, { deleted: true });
     } catch (error: any) {
       if (error.message === 'Comment not found') return sendError(res, 'NOT_FOUND', error.message, 404);

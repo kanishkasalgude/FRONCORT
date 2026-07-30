@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: workspace_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d workspace_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  workspace-api:
+    build:
+      context: .
+      dockerfile: apps/workspace-api/Dockerfile
+    ports:
+      - "4000:3000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/workspace_db
+      - JWT_SECRET=test_jwt_secret
+      - JWT_EXPIRES_IN=1d
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma && 
+             npx tsx scripts/seed.ts &&
+             node apps/workspace-api/dist/server.js"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  support-web:
+    build:
+      context: .
+      dockerfile: apps/support-web/Dockerfile
+    ports:
+      - "3001:80"
+    depends_on:
+      workspace-api:
+        condition: service_healthy
+
+  review-web:
+    build:
+      context: .
+      dockerfile: apps/review-web/Dockerfile
+    ports:
+      - "3002:80"
+    depends_on:
+      workspace-api:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

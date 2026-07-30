@@ -5,6 +5,9 @@ import { MembershipRepository } from '../../identity/repositories/membership.rep
 
 vi.mock('../repositories/ticket.repository');
 vi.mock('../../identity/repositories/membership.repository');
+vi.mock('../../audit/services/audit.service', () => ({
+  AuditService: { logAction: vi.fn() }
+}));
 
 describe('TicketService', () => {
   beforeEach(() => {
@@ -25,7 +28,7 @@ describe('TicketService', () => {
   
   it('should update ticket status', async () => {
     vi.mocked(TicketRepository.update).mockResolvedValue({ id: 't1', status: 'IN_PROGRESS' } as any);
-    const result = await TicketService.updateStatus('t1', 'org1', { status: 'IN_PROGRESS' });
+    const result = await TicketService.updateStatus('t1', 'org1', 'actor1', { status: 'IN_PROGRESS' });
     expect(result.status).toBe('IN_PROGRESS');
   });
 });
