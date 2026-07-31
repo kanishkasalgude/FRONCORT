@@ -42,6 +42,21 @@ docker-compose up -d --build
 - Support Web is available at `http://localhost:3001`
 - Review Web is available at `http://localhost:3002`
 
+## AI Digest & Append-Only Audit
+
+- **AI Digest**: Summarizes daily events per organization using LLMs with a fallback to deterministic generation.
+- **Append-Only Audit**: Audit logs are enforced at the PostgreSQL database level using triggers to prevent modifications.
+
+## Tests
+The monorepo relies on Vitest for integration and unit testing.
+```bash
+npm run test --workspaces
+```
+
 ## Documentation
 
-See the `docs/` folder for detailed API specifications, deployment guides, and architectural diagrams.
+Detailed architectural, deployment, and API specifications are available in the `docs/` directory:
+- [Architecture & Design](docs/architecture.md)
+- [API Reference](docs/api.md)
+- [Deployment & Setup Guide](docs/deployment.md)
+- [Limitations & Future Improvements](docs/limitations.md)

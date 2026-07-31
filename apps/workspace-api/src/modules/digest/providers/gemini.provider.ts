@@ -55,7 +55,7 @@ Generate a short executive summary.`.trim();
         throw new Error(`Gemini API error: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as any;
       return data.candidates[0].content.parts[0].text.trim();
     } catch (error) {
       clearTimeout(timeoutId);

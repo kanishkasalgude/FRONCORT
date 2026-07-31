@@ -1,17 +1,13 @@
--- Migration: enforce_append_only_audit
--- To rollback this migration during development, run the following SQL:
--- DROP TRIGGER IF EXISTS enforce_append_only_audit ON "AuditLog";
--- DROP FUNCTION IF EXISTS prevent_audit_update_delete();
-
-CREATE OR REPLACE FUNCTION prevent_audit_update_delete()
+-- PostgreSQL Trigger to enforce append-only rule on AuditLog table
+CREATE OR REPLACE FUNCTION prevent_audit_log_modification()
 RETURNS TRIGGER AS $$
 BEGIN
-    RAISE EXCEPTION 'AuditLog is append-only. Updates and deletions are not allowed.';
+    RAISE EXCEPTION 'Audit logs are append-only. Modification or deletion is not allowed.';
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS enforce_append_only_audit ON "AuditLog";
+DROP TRIGGER IF EXISTS prevent_audit_log_update_delete ON "AuditLog";
 
-CREATE TRIGGER enforce_append_only_audit
+CREATE TRIGGER prevent_audit_log_update_delete
 BEFORE UPDATE OR DELETE ON "AuditLog"
-FOR EACH ROW EXECUTE FUNCTION prevent_audit_update_delete();
+FOR EACH ROW EXECUTE FUNCTION prevent_audit_log_modification();

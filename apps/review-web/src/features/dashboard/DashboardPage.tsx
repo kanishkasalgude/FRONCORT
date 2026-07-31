@@ -12,9 +12,9 @@ export function DashboardPage() {
   const shared = sharedData || [];
 
   const totalPRs = prs.length;
-  const pendingPRs = prs.filter(pr => (pr.status === 'open' || pr.status === 'IN_REVIEW' || pr.status === 'DRAFT') && (pr.currentApprovals || 0) < pr.requiredApprovals).length;
-  const approvedPRs = prs.filter(pr => (pr.status === 'open' || pr.status === 'APPROVED' || pr.status === 'IN_REVIEW') && (pr.currentApprovals || 0) >= pr.requiredApprovals).length;
-  const mergedPRs = prs.filter(pr => pr.status === 'merged' || pr.status === 'MERGED').length;
+  const pendingPRs = prs.filter(pr => (pr.status === 'DRAFT' || pr.status === 'IN_REVIEW') && (pr.currentApprovals || 0) < pr.requiredApprovals).length;
+  const approvedPRs = prs.filter(pr => (pr.status === 'APPROVED' || pr.status === 'IN_REVIEW') && (pr.currentApprovals || 0) >= pr.requiredApprovals).length;
+  const mergedPRs = prs.filter(pr => pr.status === 'MERGED').length;
 
   return (
     <div className="space-y-6">

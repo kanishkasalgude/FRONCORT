@@ -1,7 +1,7 @@
 import { DigestRepository } from '../repositories/digest.repository';
 import { DigestAIProvider } from '../providers/digest-ai.provider';
 import { FallbackProvider } from '../providers/fallback.provider';
-import { GeminiProvider } from '../providers/gemini.provider';
+import { LlmProvider } from '../providers/llm.provider';
 import { prisma } from '@workspace/database';
 
 export class DigestService {
@@ -39,7 +39,11 @@ export class DigestService {
     let provider: DigestAIProvider;
     
     if (process.env.LLM_API_KEY) {
-      provider = new GeminiProvider(process.env.LLM_API_KEY, process.env.LLM_MODEL);
+      provider = new LlmProvider(
+        process.env.LLM_API_KEY, 
+        process.env.LLM_MODEL, 
+        process.env.LLM_BASE_URL
+      );
     } else {
       provider = new FallbackProvider();
     }

@@ -73,7 +73,7 @@ export interface PullRequest {
   id: string;
   title: string;
   url: string;
-  status: 'open' | 'merged' | 'closed';
+  status: 'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED' | 'MERGED';
   requiredApprovals: number;
   currentApprovals: number;
   reviewers: Reviewer[];

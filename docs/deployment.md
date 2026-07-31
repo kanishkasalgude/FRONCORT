@@ -1,30 +1,84 @@
-# Deployment Guide
+# Deployment & Setup Guide
 
-The Unified Workspace is designed for rapid containerized deployment via Docker.
+This document outlines how to run, test, and deploy the Unified Workspace monorepo.
 
-## Production Requirements
-- **Docker & Docker Compose**: Essential for orchestrating the application stack.
-- **PostgreSQL 14+**: A production-grade relational database engine.
-- **Environment Variables**:
-  - `DATABASE_URL`: Connection string to the PostgreSQL database.
-  - `JWT_SECRET`: A secure 256-bit secret key (e.g., generated via `openssl rand -hex 32`).
-  - `JWT_EXPIRES_IN`: Recommended `1h`.
-  - `GEMINI_API_KEY`: (Optional) If omitted, the digest service defaults to a deterministic local fallback.
+## Requirements
+- **Node.js**: v20 or higher
+- **NPM**: v10 or higher
+- **Docker**: Engine 24+ and Docker Compose v2+
 
-## Deployment Steps
-1. Clone the repository to the production server.
-2. Copy `.env.example` to `.env` and populate secrets.
-3. Bring down any existing containers:
+## Environment Variables
+
+Copy the `.env.example` file to `.env` at the root of the repository:
+```bash
+cp .env.example .env
+```
+
+Required variables:
+- `DATABASE_URL`: Connection string for PostgreSQL (e.g., `postgresql://user:password@localhost:5432/workspace_db`)
+- `JWT_SECRET`: A strong 256-bit secret key for token signing.
+- `JWT_EXPIRES_IN`: Access token lifespan (default: `1d`).
+
+Optional AI Digest variables:
+- `LLM_API_KEY`: API key for the LLM provider.
+- `LLM_PROVIDER`: The LLM provider to use (e.g., `openai`, `gemini`).
+- `LLM_MODEL`: Model string (e.g., `gpt-4`, `gemini-2.5-flash`).
+- `LLM_BASE_URL`: Base URL if using an OpenAI-compatible proxy or alternative provider.
+
+## Local Setup (Native Node + Docker DB)
+
+1. Start the local PostgreSQL database using Docker:
    ```bash
-   docker-compose down
+   docker-compose up db -d
    ```
-4. Build and run the isolated microservices:
+2. Install monorepo dependencies:
    ```bash
-   docker-compose up --build -d
+   npm install
    ```
-5. Apply database migrations:
+3. Run database migrations:
    ```bash
-   docker-compose exec workspace-api npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma
+   npx prisma migrate dev --schema=packages/database/prisma/schema.prisma
    ```
+4. Seed the database (optional):
+   ```bash
+   npx ts-node packages/database/seed.ts
+   ```
+5. Start the development servers concurrently:
+   ```bash
+   npm run dev
+   ```
+   - API runs on `http://localhost:3000`
+   - Support Web runs on `http://localhost:3001`
+   - Review Web runs on `http://localhost:3002`
 
-*Note: The `docker-compose.yml` file is configured to parameterize environment variables, ensuring hardcoded secrets do not leak into the image.*
+## Full Docker Setup
+
+To run the entire stack inside Docker containers:
+```bash
+docker-compose up -d --build
+```
+This builds the API and both frontend images, starts PostgreSQL, automatically applies Prisma migrations, and exposes the services.
+
+## Running Tests
+
+The repository uses Vitest for testing across all packages and applications.
+```bash
+# Run all tests in the monorepo
+npm run test --workspaces
+```
+
+## Building for Production
+
+To build the TypeScript packages and the Vite frontends:
+```bash
+npm run build --workspaces
+```
+This compiles the Express app into `dist/` and builds optimized static assets for the React apps.
+
+## Production Deployment
+
+For production, it is recommended to:
+1. Deploy PostgreSQL as a managed service (e.g., AWS RDS, Supabase).
+2. Deploy the `workspace-api` as a Node.js Docker container (using `apps/workspace-api/Dockerfile`).
+3. Deploy `support-web` and `review-web` static builds to a CDN or static host (Vercel, AWS S3/CloudFront). 
+   - Note: The current `Dockerfile` for the frontends uses Nginx to serve the static assets if you prefer containerized frontend hosting.
