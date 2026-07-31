@@ -8,13 +8,13 @@ export function DashboardPage() {
 
   if (loadingPRs || loadingShared) return <div className="p-4">Loading Dashboard...</div>;
 
-  const prs = prData?.data || [];
-  const shared = sharedData?.data || [];
+  const prs = prData || [];
+  const shared = sharedData || [];
 
   const totalPRs = prs.length;
-  const pendingPRs = prs.filter(pr => pr.status === 'open' && pr.currentApprovals < pr.requiredApprovals).length;
-  const approvedPRs = prs.filter(pr => pr.status === 'open' && pr.currentApprovals >= pr.requiredApprovals).length;
-  const mergedPRs = prs.filter(pr => pr.status === 'merged').length;
+  const pendingPRs = prs.filter(pr => (pr.status === 'open' || pr.status === 'IN_REVIEW' || pr.status === 'DRAFT') && (pr.currentApprovals || 0) < pr.requiredApprovals).length;
+  const approvedPRs = prs.filter(pr => (pr.status === 'open' || pr.status === 'APPROVED' || pr.status === 'IN_REVIEW') && (pr.currentApprovals || 0) >= pr.requiredApprovals).length;
+  const mergedPRs = prs.filter(pr => pr.status === 'merged' || pr.status === 'MERGED').length;
 
   return (
     <div className="space-y-6">
@@ -72,7 +72,7 @@ export function DashboardPage() {
                   <li key={pr.id} className="flex justify-between items-center border-b pb-2 last:border-0 last:pb-0">
                     <div>
                       <Link to={`/pull-requests/${pr.id}`} className="font-medium hover:underline">
-                        {pr.title}
+                        {pr.title || `PR ${pr.id.slice(0, 8)}`}
                       </Link>
                       <p className="text-sm text-muted-foreground">Status: {pr.status}</p>
                     </div>

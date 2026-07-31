@@ -1,4 +1,8 @@
 import { DigestRepository } from '../repositories/digest.repository';
+import { DigestAIProvider } from '../providers/digest-ai.provider';
+import { FallbackProvider } from '../providers/fallback.provider';
+import { GeminiProvider } from '../providers/gemini.provider';
+import { prisma } from '@workspace/database';
 
 export class DigestService {
   static async generateDigests(): Promise<void> {
@@ -10,7 +14,6 @@ export class DigestService {
           await this.generateDigestForUser(pair.actorId, pair.orgId);
         } catch (err) {
           console.error(`[DigestService] Failed to generate digest for User ${pair.actorId} in Org ${pair.orgId}`, err);
-          // Scheduler failure isolation: continue running for other users
         }
       }
     } catch (error) {
@@ -23,38 +26,33 @@ export class DigestService {
     const audits = await DigestRepository.getUnprocessedAudits(orgId, userId, lastDigestTime);
 
     if (audits.length === 0) {
-      return; // Digest with zero new events should not be created
+      return; 
     }
 
-    const counts: Record<string, number> = {
-      pr_reviewed: 0,
-      ticket_closed: 0,
-      resource_shared: 0,
-    };
+    const org = await prisma.org.findUnique({ where: { id: orgId } });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
 
-    // Summarize based on action types (these strings will match what we pass into logAction)
-    for (const audit of audits) {
-      if (audit.action === 'REVIEW_PR' || audit.action === 'APPROVE_PR' || audit.action === 'REQUEST_CHANGES_PR') {
-        counts.pr_reviewed++;
-      } else if (audit.action === 'UPDATE_TICKET' && audit.metadata && (audit.metadata as any).status === 'CLOSED') {
-        counts.ticket_closed++;
-      } else if (audit.action === 'DELETE_TICKET') {
-        counts.ticket_closed++;
-      } else if (audit.action === 'SHARE_RESOURCE') {
-        counts.resource_shared++;
-      }
+    if (!org || !user) {
+      throw new Error('Organization or User not found');
     }
 
-    const summaryParts: string[] = [];
-    if (counts.pr_reviewed > 0) summaryParts.push(`${counts.pr_reviewed} Pull Requests reviewed.`);
-    if (counts.ticket_closed > 0) summaryParts.push(`${counts.ticket_closed} Tickets closed.`);
-    if (counts.resource_shared > 0) summaryParts.push(`${counts.resource_shared} Resources shared.`);
+    let provider: DigestAIProvider;
+    
+    if (process.env.LLM_API_KEY) {
+      provider = new GeminiProvider(process.env.LLM_API_KEY, process.env.LLM_MODEL);
+    } else {
+      provider = new FallbackProvider();
+    }
 
-    // If no meaningful summary generated from the subset we care about, use a generic fallback using total counts
-    const finalSummary = summaryParts.length > 0 
-      ? summaryParts.join(' ')
-      : `${audits.length} new activities recorded.`;
+    let summary = '';
+    try {
+      summary = await provider.generateSummary(audits, org, user);
+    } catch (error) {
+      console.error('[DigestService] Primary LLM provider failed, falling back to deterministic summary.', error);
+      const fallback = new FallbackProvider();
+      summary = await fallback.generateSummary(audits, org, user);
+    }
 
-    await DigestRepository.create(userId, orgId, finalSummary);
+    await DigestRepository.create(userId, orgId, summary);
   }
 }

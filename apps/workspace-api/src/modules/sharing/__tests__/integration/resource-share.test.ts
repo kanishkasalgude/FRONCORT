@@ -16,7 +16,7 @@ describe('Resource Share Integration (Real DB)', () => {
 
   beforeAll(async () => {
     // Push the schema to the test database
-    execSync('npx prisma db push --schema packages/database/prisma/schema.prisma --skip-generate', { 
+    execSync('npx prisma db push --schema ../../packages/database/prisma/schema.prisma --skip-generate', { 
       stdio: 'inherit',
       env: { ...process.env, DATABASE_URL: process.env.DATABASE_URL }
     });

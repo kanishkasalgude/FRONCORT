@@ -107,10 +107,14 @@ export class AuthController {
   static async me(req: Request, res: Response, next: NextFunction) {
     try {
       const orgs = await OrgService.getUserOrgs(req.user!.userId);
+      const { prisma } = require('@workspace/database');
+      const user = await prisma.user.findUnique({ where: { id: req.user!.userId } });
       return sendSuccess(res, {
-        user: { id: req.user!.userId },
-        activeOrgId: req.user!.activeOrgId,
-        role: req.user!.role,
+        id: user!.id,
+        email: user!.email,
+        name: user!.email.split('@')[0],
+        globalRole: user!.isPlatformAdmin ? 'admin' : 'user',
+        organizationId: req.user!.activeOrgId,
         organizations: orgs,
       });
     } catch (error) {

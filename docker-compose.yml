@@ -4,9 +4,9 @@ services:
   db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: workspace_db
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-workspace_db}
     ports:
       - "5432:5432"
     volumes:
@@ -24,9 +24,11 @@ services:
     ports:
       - "4000:3000"
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/workspace_db
-      - JWT_SECRET=test_jwt_secret
-      - JWT_EXPIRES_IN=1d
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL=${LLM_MODEL}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-1d}
     depends_on:
       db:
         condition: service_healthy

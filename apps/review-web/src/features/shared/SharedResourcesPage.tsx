@@ -19,7 +19,7 @@ export function SharedResourcesPage() {
 
   if (isLoading) return <div>Loading...</div>;
 
-  const shared = data?.data || [];
+  const shared = data || [];
 
   const columns: ColumnDef<ResourceShare>[] = [
     { accessorKey: 'resourceId', header: 'Resource ID' },
@@ -35,7 +35,7 @@ export function SharedResourcesPage() {
           size="sm" 
           className="text-destructive"
           disabled={revokeMutation.isPending}
-          onClick={() => revokeMutation.mutate(row.original.id)}
+          onClick={() => revokeMutation.mutate({ resourceId: row.original.resourceId, shareId: row.original.id })}
         >
           {revokeMutation.isPending ? 'Revoking...' : 'Revoke'}
         </Button>

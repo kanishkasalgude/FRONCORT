@@ -12,6 +12,7 @@ vi.mock('@workspace/database', () => ({
     org: { findUnique: vi.fn(), findMany: vi.fn() },
     orgMembership: { findUnique: vi.fn(), findFirst: vi.fn() },
     session: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn(), findFirst: vi.fn(), updateMany: vi.fn() },
+    auditLog: { create: vi.fn(), findMany: vi.fn() },
     $queryRaw: vi.fn()
   },
   Role: { ORG_ADMIN: 'ORG_ADMIN', REVIEWER: 'REVIEWER', SUPPORT_AGENT: 'SUPPORT_AGENT' }

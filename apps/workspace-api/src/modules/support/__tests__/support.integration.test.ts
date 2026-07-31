@@ -11,7 +11,8 @@ vi.mock('@workspace/database', () => ({
     ticketAttachment: { findFirst: vi.fn(), findMany: vi.fn(), create: vi.fn(), delete: vi.fn() },
     featureFlag: { findFirst: vi.fn(), findMany: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
     session: { findUnique: vi.fn(), update: vi.fn() },
-    orgMembership: { findFirst: vi.fn(), findUnique: vi.fn() }
+    orgMembership: { findFirst: vi.fn(), findUnique: vi.fn() },
+    auditLog: { create: vi.fn(), findMany: vi.fn() }
   },
   Role: { ORG_ADMIN: 'ORG_ADMIN', REVIEWER: 'REVIEWER', SUPPORT_AGENT: 'SUPPORT_AGENT' }
 }));

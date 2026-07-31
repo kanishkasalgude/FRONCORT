@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { ResourceShareService } from '../services/resource-share.service';
+import { sendSuccess, sendError } from '../../../utils/response';
 
 export class ResourceShareController {
   static async shareResource(req: Request, res: Response) {
@@ -10,14 +11,14 @@ export class ResourceShareController {
       const userId = req.user!.userId;
 
       const share = await ResourceShareService.shareResource(activeOrgId, userId, resourceId, targetOrgId);
-      res.status(201).json({ data: share });
+      return sendSuccess(res, share, 201);
     } catch (error: any) {
       if (error.name === 'ConflictError') {
-        res.status(409).json({ error: error.message });
+        return sendError(res, 'CONFLICT', error.message, 409);
       } else if (error.name === 'ForbiddenError') {
-        res.status(403).json({ error: error.message });
+        return sendError(res, 'FORBIDDEN', error.message, 403);
       } else {
-        res.status(500).json({ error: error.message });
+        return sendError(res, 'INTERNAL_SERVER_ERROR', error.message, 500);
       }
     }
   }
@@ -29,14 +30,14 @@ export class ResourceShareController {
       const userId = req.user!.userId;
 
       await ResourceShareService.revokeShare(activeOrgId, userId, resourceId, shareId);
-      res.status(200).json({ message: 'Share revoked successfully' });
+      return sendSuccess(res, { message: 'Share revoked successfully' });
     } catch (error: any) {
       if (error.name === 'NotFoundError') {
-        res.status(404).json({ error: error.message });
+        return sendError(res, 'NOT_FOUND', error.message, 404);
       } else if (error.name === 'ForbiddenError') {
-        res.status(403).json({ error: error.message });
+        return sendError(res, 'FORBIDDEN', error.message, 403);
       } else {
-        res.status(500).json({ error: error.message });
+        return sendError(res, 'INTERNAL_SERVER_ERROR', error.message, 500);
       }
     }
   }
@@ -47,9 +48,9 @@ export class ResourceShareController {
       const activeOrgId = req.user!.activeOrgId;
 
       const shares = await ResourceShareService.listShares(activeOrgId, resourceId);
-      res.status(200).json({ data: shares });
+      return sendSuccess(res, shares);
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      return sendError(res, 'BAD_REQUEST', error.message, 400);
     }
   }
 
@@ -57,9 +58,9 @@ export class ResourceShareController {
     try {
       const activeOrgId = req.user!.activeOrgId;
       const shares = await ResourceShareService.getSharedWithMe(activeOrgId);
-      res.status(200).json({ data: shares });
+      return sendSuccess(res, shares);
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      return sendError(res, 'INTERNAL_SERVER_ERROR', error.message, 500);
     }
   }
 
@@ -69,12 +70,12 @@ export class ResourceShareController {
       const activeOrgId = req.user!.activeOrgId;
 
       const details = await ResourceShareService.getSharedResourceDetails(activeOrgId, resourceId);
-      res.status(200).json({ data: details });
+      return sendSuccess(res, details);
     } catch (error: any) {
       if (error.name === 'NotFoundError') {
-        res.status(404).json({ error: error.message });
+        return sendError(res, 'NOT_FOUND', error.message, 404);
       } else {
-        res.status(500).json({ error: error.message });
+        return sendError(res, 'INTERNAL_SERVER_ERROR', error.message, 500);
       }
     }
   }

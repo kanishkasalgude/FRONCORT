@@ -5,7 +5,7 @@ import { AppRouter } from './routes';
 import { AppProviders } from '@workspace/frontend-core';
 
 async function enableMocking() {
-  if (!import.meta.env.DEV) {
+  if (import.meta.env.VITE_USE_MSW !== 'true') {
     return;
   }
   const { worker } = await import('./mocks/browser');

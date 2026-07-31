@@ -39,7 +39,8 @@ export function TicketsPage() {
   if (isLoading) return <LoadingState message="Loading tickets..." />;
   if (error) return <ErrorState message="Failed to load tickets" />;
 
-  const isEmpty = !data || data.data.length === 0;
+  const tickets = data || [];
+  const isEmpty = tickets.length === 0;
 
   return (
     <div className="space-y-4">
@@ -57,7 +58,7 @@ export function TicketsPage() {
       ) : (
         <DataTable 
           columns={columns} 
-          data={data.data} 
+          data={tickets} 
           onRowClick={(row) => navigate(`/tickets/${row.id}`)}
         />
       )}

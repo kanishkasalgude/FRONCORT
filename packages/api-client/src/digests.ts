@@ -15,5 +15,5 @@ export interface PaginatedDigests {
 
 export const digestsApi = {
   getDigests: (params?: GetDigestsParams) => 
-    apiClient.get<PaginatedDigests>('/api/digests', { params: params as any }),
+    apiClient.get<PaginatedDigests>('/api/support/digests', { params: params as any }),
 };

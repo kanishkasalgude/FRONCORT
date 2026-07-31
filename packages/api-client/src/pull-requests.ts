@@ -17,29 +17,29 @@ export interface PaginatedPullRequests {
 
 export const pullRequestsApi = {
   getPullRequests: (params?: GetPullRequestsParams) => 
-    apiClient.get<PaginatedPullRequests>('/api/pull-requests', { params: params as any }),
+    apiClient.get<PullRequest[]>('/api/review/pull-requests', { params: params as any }),
     
   getPullRequest: (id: string) => 
-    apiClient.get<PullRequest>(`/api/pull-requests/${id}`),
+    apiClient.get<PullRequest>(`/api/review/pull-requests/${id}`),
     
   createPullRequest: (data: Partial<PullRequest>) => 
-    apiClient.post<PullRequest>('/api/pull-requests', data),
+    apiClient.post<PullRequest>('/api/review/pull-requests', data),
     
   assignReviewer: (prId: string, userId: string) => 
-    apiClient.post<PullRequest>(`/api/pull-requests/${prId}/reviewers`, { userId }),
+    apiClient.post<PullRequest>(`/api/review/pull-requests/${prId}/reviewers`, { userId }),
     
   removeReviewer: (prId: string, reviewerId: string) => 
-    apiClient.delete<PullRequest>(`/api/pull-requests/${prId}/reviewers/${reviewerId}`),
+    apiClient.delete<PullRequest>(`/api/review/pull-requests/${prId}/reviewers/${reviewerId}`),
     
   approvePullRequest: (prId: string) => 
-    apiClient.post<PullRequest>(`/api/pull-requests/${prId}/approve`),
+    apiClient.post<PullRequest>(`/api/review/pull-requests/${prId}/approve`),
     
   requestChanges: (prId: string, reason?: string) => 
-    apiClient.post<PullRequest>(`/api/pull-requests/${prId}/request-changes`, { reason }),
+    apiClient.post<PullRequest>(`/api/review/pull-requests/${prId}/request-changes`, { reason }),
     
   mergePullRequest: (prId: string) => 
-    apiClient.post<PullRequest>(`/api/pull-requests/${prId}/merge`),
+    apiClient.post<PullRequest>(`/api/review/pull-requests/${prId}/merge`),
     
   getVersionHistory: (prId: string) => 
-    apiClient.get<PullRequestVersion[]>(`/api/pull-requests/${prId}/versions`),
+    apiClient.get<PullRequestVersion[]>(`/api/review/pull-requests/${prId}/versions`),
 };

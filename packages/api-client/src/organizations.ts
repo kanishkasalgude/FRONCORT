@@ -2,6 +2,6 @@ import { apiClient } from './client';
 import type { Organization } from '@workspace/shared-types';
 
 export const organizationsApi = {
-  getOrganizations: () => apiClient.get<Organization[]>('/api/organizations'),
-  switchOrganization: (orgId: string) => apiClient.post<void>(`/api/organizations/${orgId}/switch`),
+  getOrganizations: () => apiClient.get<any>('/api/auth/me').then(res => res.organizations as Organization[]),
+  switchOrganization: (orgId: string) => apiClient.patch<void>(`/api/auth/switch-org`, { orgId }),
 };

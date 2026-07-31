@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { User, Session } from '@workspace/shared-types';
-import { authApi } from '@workspace/api-client';
+import { authApi, apiClient } from '@workspace/api-client';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AuthContextType {
   user: User | null;
@@ -16,22 +17,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    authApi.getCurrentUser()
-      .then(user => setUser(user))
-      .catch(() => setUser(null))
-      .finally(() => setIsLoading(false));
+    const initAuth = async () => {
+      try {
+        const sessionData = await authApi.refreshToken();
+        if (sessionData?.accessToken) {
+          apiClient.setToken(sessionData.accessToken);
+          setSession(sessionData);
+          const user = await authApi.getCurrentUser();
+          setUser(user);
+        }
+      } catch (err) {
+        // failed to refresh
+        setUser(null);
+        setSession(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    initAuth();
+
+    apiClient.onUnauthorized(() => {
+      setUser(null);
+      setSession(null);
+      apiClient.setToken(null);
+    });
   }, []);
 
   const login = async (data: any) => {
+    queryClient.clear();
     const sessionData = await authApi.login(data);
+    
+    if (sessionData.accessToken) {
+      apiClient.setToken(sessionData.accessToken);
+    }
+    
     setSession(sessionData);
     setUser(sessionData.user);
   };
 
   const logout = async () => {
     await authApi.logout();
+    queryClient.clear();
+    apiClient.setToken(null);
     setSession(null);
     setUser(null);
   };

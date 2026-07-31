@@ -93,7 +93,13 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      user: { id: user.id, email: user.email },
+      user: { 
+        id: user.id, 
+        email: user.email,
+        name: user.email.split('@')[0],
+        globalRole: user.isPlatformAdmin ? 'admin' : 'user',
+        organizationId: membership.orgId
+      },
     };
   }
 }

@@ -7,6 +7,7 @@ import { VersionService } from '../../services/version.service';
 vi.mock('../../repositories/pull-request.repository');
 vi.mock('../../../identity/repositories/membership.repository');
 vi.mock('../../services/version.service');
+vi.mock('../../../audit/services/audit.service');
 
 describe('PullRequestService Unit', () => {
   it('creates PR and version', async () => {

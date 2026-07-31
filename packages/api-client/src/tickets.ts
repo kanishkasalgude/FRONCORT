@@ -21,17 +21,17 @@ export interface PaginatedResponse<T> {
 
 export const ticketsApi = {
   getTickets: (params?: GetTicketsParams) => 
-    apiClient.get<PaginatedResponse<Ticket>>('/api/tickets', { params: params as Record<string, string> }),
+    apiClient.get<Ticket[]>('/api/support/tickets', { params: params as Record<string, string> }),
   
   getTicket: (id: string) => 
-    apiClient.get<Ticket>(`/api/tickets/${id}`),
+    apiClient.get<Ticket>(`/api/support/tickets/${id}`),
     
   createTicket: (data: Partial<Ticket>) => 
-    apiClient.post<Ticket>('/api/tickets', data),
+    apiClient.post<Ticket>('/api/support/tickets', data),
     
   updateTicket: (id: string, data: Partial<Ticket>) => 
-    apiClient.patch<Ticket>(`/api/tickets/${id}`, data),
+    apiClient.patch<Ticket>(`/api/support/tickets/${id}`, data),
     
   deleteTicket: (id: string) => 
-    apiClient.delete<void>(`/api/tickets/${id}`),
+    apiClient.delete<void>(`/api/support/tickets/${id}`),
 };

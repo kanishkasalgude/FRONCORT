@@ -9,6 +9,8 @@ export function DashboardPage() {
   if (loadingTickets || loadingFlags) return <LoadingState />;
   if (errorTickets || errorFlags) return <ErrorState message="Failed to load dashboard data." />;
 
+  const tickets = ticketsData || [];
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
@@ -19,7 +21,7 @@ export function DashboardPage() {
             <CardTitle className="text-sm font-medium">Open Tickets</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{ticketsData?.total || 0}</div>
+            <div className="text-2xl font-bold">{tickets.length}</div>
           </CardContent>
         </Card>
       </div>
@@ -30,7 +32,7 @@ export function DashboardPage() {
             <CardTitle>Recent Tickets</CardTitle>
           </CardHeader>
           <CardContent>
-            {ticketsData?.data.map(ticket => (
+            {tickets.map(ticket => (
               <div key={ticket.id} className="py-2 border-b last:border-0">
                 <p className="font-medium">{ticket.title}</p>
                 <p className="text-sm text-muted-foreground">{ticket.status}</p>

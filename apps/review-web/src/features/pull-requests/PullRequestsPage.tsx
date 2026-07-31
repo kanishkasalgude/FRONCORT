@@ -10,7 +10,7 @@ export function PullRequestsPage() {
   if (isLoading) return <div>Loading pull requests...</div>;
   if (error) return <div>Error loading pull requests</div>;
 
-  const pullRequests = data?.data || [];
+  const pullRequests = data || [];
 
   const columns: ColumnDef<PullRequest>[] = [
     {
@@ -18,7 +18,7 @@ export function PullRequestsPage() {
       header: 'Title',
       cell: ({ row }) => (
         <Link to={`/pull-requests/${row.original.id}`} className="font-medium text-blue-600 hover:underline">
-          {row.original.title}
+          {row.original.title || `PR ${row.original.id.slice(0, 8)}`}
         </Link>
       ),
     },
@@ -41,7 +41,7 @@ export function PullRequestsPage() {
     {
       accessorKey: 'sharingStatus',
       header: 'Sharing',
-      cell: ({ row }) => <span className="capitalize">{row.original.sharingStatus.replace('_', ' ')}</span>
+      cell: ({ row }) => <span className="capitalize">{(row.original.sharingStatus || 'not_shared').replace('_', ' ')}</span>
     },
     {
       accessorKey: 'createdAt',

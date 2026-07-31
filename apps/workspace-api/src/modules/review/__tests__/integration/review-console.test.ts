@@ -16,7 +16,7 @@ describe('Review Console Integration (Real DB)', () => {
   beforeAll(async () => {
     // We assume vitest is running with NODE_ENV=test and using a test DB
     // Push the schema to the test database
-    execSync('npx prisma db push --schema packages/database/prisma/schema.prisma --skip-generate', { 
+    execSync('npx prisma db push --schema ../../packages/database/prisma/schema.prisma --skip-generate', { 
       stdio: 'inherit',
       env: { ...process.env, DATABASE_URL: process.env.DATABASE_URL }
     });
@@ -220,9 +220,10 @@ describe('Review Console Integration (Real DB)', () => {
     await request(app).post(`/api/review/pull-requests/${prId}/reviewers`).set('Authorization', `Bearer ${adminToken}`).send({ userId: reviewerId });
     
     // Create another reviewer to simulate one approved, one request changes (actually we only have 1 reviewer here)
-    await request(app).post(`/api/review/pull-requests/${prId}/request-changes`).set('Authorization', `Bearer ${reviewerToken}`);
+    await request(app).post(`/api/review/pull-requests/${prId}/request-changes`).set('Authorization', `Bearer ${reviewerToken}`).send({});
     
-    const res = await request(app).post(`/api/review/pull-requests/${prId}/merge`).set('Authorization', `Bearer ${adminToken}`);
+    const res = await request(app).post(`/api/review/pull-requests/${prId}/merge`).set('Authorization', `Bearer ${adminToken}`).send({});
     expect(res.status).toBe(409);
   });
+
 });

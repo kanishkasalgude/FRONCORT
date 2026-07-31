@@ -13,8 +13,8 @@ export interface Organization {
 
 export interface Session {
   user: User;
-  token: string;
-  expiresAt: string;
+  accessToken: string;
+  refreshToken?: string;
 }
 
 export interface Ticket {

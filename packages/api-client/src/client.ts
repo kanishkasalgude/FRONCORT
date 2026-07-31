@@ -13,7 +13,12 @@ interface FetchOptions extends RequestInit {
   params?: Record<string, string>;
 }
 
+let _token: string | null = null;
+let _onUnauthorized: (() => void) | null = null;
+
 export const apiClient = {
+  setToken: (token: string | null) => { _token = token; },
+  onUnauthorized: (cb: () => void) => { _onUnauthorized = cb; },
   get: <T>(url: string, options?: FetchOptions) => request<T>(url, { ...options, method: 'GET' }),
   post: <T>(url: string, data?: any, options?: FetchOptions) => request<T>(url, { ...options, method: 'POST', body: JSON.stringify(data) }),
   put: <T>(url: string, data?: any, options?: FetchOptions) => request<T>(url, { ...options, method: 'PUT', body: JSON.stringify(data) }),
@@ -34,10 +39,17 @@ async function request<T>(url: string, options: FetchOptions = {}): Promise<T> {
   if (!headers.has('Content-Type') && init.body) {
     headers.set('Content-Type', 'application/json');
   }
+  
+  if (_token) {
+    headers.set('Authorization', `Bearer ${_token}`);
+  }
 
   const response = await fetch(fetchUrl, { ...init, headers });
 
   if (!response.ok) {
+    if (response.status === 401 && _onUnauthorized && !fetchUrl.includes('/api/auth/login')) {
+      _onUnauthorized();
+    }
     let errorData;
     try {
       errorData = await response.json();
@@ -51,5 +63,16 @@ async function request<T>(url: string, options: FetchOptions = {}): Promise<T> {
     return {} as T;
   }
 
-  return response.json();
+  const responseData = await response.json();
+  
+  // Unwrap standard backend response format { success: true, data: ... }
+  if (responseData && typeof responseData === 'object' && 'success' in responseData) {
+    if (responseData.success) {
+      return responseData.data as T;
+    } else {
+      throw new ApiError(response.status, responseData.error?.message || response.statusText, responseData.error);
+    }
+  }
+
+  return responseData as T;
 }

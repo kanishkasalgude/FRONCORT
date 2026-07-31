@@ -18,6 +18,16 @@ app.get('/health', async (req, res) => {
   }
 });
 
+app.get('/ready', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.status(200).json({ status: 'ready', database: 'connected' });
+  } catch (error) {
+    res.status(503).json({ status: 'unavailable', database: 'disconnected' });
+  }
+});
+
+
 app.use('/api', routes);
 
 app.use(errorHandler);

@@ -16,11 +16,11 @@ export interface PaginatedSharedResources {
 
 export const sharedResourcesApi = {
   getSharedResources: (params?: GetSharedResourcesParams) => 
-    apiClient.get<PaginatedSharedResources>('/api/shared-resources', { params: params as any }),
+    apiClient.get<ResourceShare[]>('/api/sharing/shared-with-me', { params: params as any }),
     
   shareResource: (data: { resourceId: string; resourceType: 'ticket' | 'pull_request'; targetOrganizationId: string; permissions: 'read' | 'write' | 'admin' }) => 
-    apiClient.post<ResourceShare>('/api/shared-resources', data),
+    apiClient.post<ResourceShare>('/api/sharing/resources/' + data.resourceId + '/share', data),
     
-  revokeShare: (shareId: string) => 
-    apiClient.post<ResourceShare>(`/api/shared-resources/${shareId}/revoke`),
+  revokeShare: (data: { resourceId: string, shareId: string }) => 
+    apiClient.delete<ResourceShare>(`/api/sharing/resources/${data.resourceId}/share/${data.shareId}`),
 };

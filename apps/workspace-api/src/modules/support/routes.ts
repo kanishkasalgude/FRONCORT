@@ -50,3 +50,22 @@ supportRoutes.post('/feature-flags', requireAdmin, validate(CreateFeatureFlagSch
 supportRoutes.get('/feature-flags', requireAdmin, FeatureFlagController.getMany);
 supportRoutes.patch('/feature-flags/:id', requireAdmin, validate(UpdateFeatureFlagSchema), FeatureFlagController.update);
 supportRoutes.delete('/feature-flags/:id', requireAdmin, FeatureFlagController.delete);
+
+// Digests
+import { prisma } from '@workspace/database';
+import { sendSuccess } from '../../utils/response';
+supportRoutes.get('/digests', async (req, res) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const orgId = req.user!.activeOrgId;
+  
+  const data = await prisma.digest.findMany({
+    where: { orgId, userId: req.user!.userId },
+    skip: (page - 1) * limit,
+    take: limit,
+    orderBy: { generatedAt: 'desc' }
+  });
+  
+  const total = await prisma.digest.count({ where: { orgId, userId: req.user!.userId } });
+  return sendSuccess(res, { data, total, page, limit });
+});

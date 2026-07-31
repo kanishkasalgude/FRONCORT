@@ -3,6 +3,7 @@ import { CommentService } from '../services/comment.service';
 import { CommentRepository } from '../repositories/comment.repository';
 
 vi.mock('../repositories/comment.repository');
+vi.mock('../../audit/services/audit.service');
 
 describe('CommentService', () => {
   beforeEach(() => {
